@@ -11,6 +11,10 @@ export const metrics = {
  * @param {Object} frame
  */
 export const metricsAddFrame = (frame) => {
+  if (metrics.frames.has(frame.index) && !frame.height) {
+    return;
+  }
+
   metrics.frames.set(frame.index, {
     height: frame.height,
     width: frame.width,

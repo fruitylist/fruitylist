@@ -16,15 +16,23 @@ export const onCellLayout = (index, data, { nativeEvent, timeStamp }, { low, hig
     timestamp: timeStamp,
   })
 
-  FruityListUtils.metricsArrangeFrames(
-    Math.max(0, high - 2),
-    Math.min(data.length, high + 2),
-  )
+  /**
+   * @TODO: Optimization
+   * 
+   * FruityListUtils.metricsArrangeFrames(
+   *   Math.max(0, high - 2),
+   *   Math.min(data.length, high + 2),
+   * )
+   */
+  FruityListUtils.metricsArrangeFrames()
 
   const {
     low: visibleLow,
     high: visibleHigh,
-  } = FruityListUtils.metricsFindInRangeFrames(0, FruityListUtils.metrics.layout.height)
+  } = FruityListUtils.metricsFindInRangeFrames(
+    FruityListUtils.metrics.contentOffset.y,
+    FruityListUtils.metrics.contentOffset.y + FruityListUtils.metrics.layout.height
+  )
 
   return (state) => {
     const visibleRangeFree = FruityListUtils.metrics.frames.get(visibleHigh).end < FruityListUtils.metrics.layout.height
@@ -35,9 +43,15 @@ export const onCellLayout = (index, data, { nativeEvent, timeStamp }, { low, hig
     )
 
     if (visibleRangeFree || overscanRangeFree) {
-      return ({ low: 0, high: high + 1 })
+      return ({ low: Math.max(0, visibleLow - 5), high: high + 1 })
     } else {
-      return state
+      /**
+       * @TODO: `return state` should actually be used here
+       * however the if condition above will not be executed
+       * for the last item in the list, therefore metrics
+       * for the last item don't trigger the list re-render
+       */
+      return ({ low: visibleLow, high: high })
     }
   }
 }
@@ -52,7 +66,10 @@ export const onContainerScroll = (data, { nativeEvent, timeStamp }, { low, high 
     y: nativeEvent.contentOffset.y,
   }
 
-  const { low: visibleLow, high: visibleHigh } = FruityListUtils.metricsFindInRangeFrames(
+  const {
+    low: visibleLow,
+    high: visibleHigh,
+  } = FruityListUtils.metricsFindInRangeFrames(
     FruityListUtils.metrics.contentOffset.y,
     FruityListUtils.metrics.contentOffset.y + FruityListUtils.metrics.layout.height
   )
@@ -65,10 +82,16 @@ export const onContainerScroll = (data, { nativeEvent, timeStamp }, { low, high 
     )
 
     if (overscanRangeFree) {
-      return ({ low: 0, high: high + 1 })
+      return ({ low: Math.max(0, visibleLow - 5), high: high + 1 })
     }
 
-    return state
+    /**
+     * @TODO: `return state` should actually be used here
+     * however the if condition above will not be executed
+     * for the last item in the list, therefore metrics
+     * for the last item don't trigger the list re-render
+     */
+    return ({ low: visibleLow, high: high })
   }
 }
 
@@ -81,5 +104,13 @@ export const onContainerLayout = ({ nativeEvent, timeStamp }) => {
     width: nativeEvent.layout.width,
     height: nativeEvent.layout.height,
   }
+}
+
+/**
+ * 
+ * @param {*} param0 
+ */
+export const getMetricsFrame = (index) => {
+  return FruityListUtils.metrics.frames.get(index)
 }
 

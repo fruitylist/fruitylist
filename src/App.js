@@ -38,10 +38,23 @@ function FruityListComponent({ data }) {
     setLowHigh(nextState)
   }
 
+  const getItemPositionStyle = (index) => {
+    const frame = FruityList.getMetricsFrame(index)
+
+    if (!frame) {
+      return { transform: [{ scale: 0 }] }
+    }
+    
+    return {
+      position: 'absolute',
+      transform: [{ translateY: frame?.start }]
+    }
+  }
+
   return (
     <ScrollView onLayout={onContainerLayout} scrollEventThrottle={16} onScroll={onContainerScroll}>
       {data.slice(low, high).map((itemIndex) => (
-        <View key={itemIndex} onLayout={onCellLayout(itemIndex)} style={styles.item}>
+        <View key={itemIndex} onLayout={onCellLayout(itemIndex)} style={[styles.item, getItemPositionStyle(itemIndex)]}>
           <Text>{itemIndex}</Text>
         </View>
       ))}
